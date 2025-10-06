@@ -7,17 +7,15 @@
   <meta name="description" content="MyTakaful — Platform ringkas untuk penerangan pelan takaful, medical card, hibah, dan temujanji pantas melalui WhatsApp." />
   <meta property="og:title" content="MyTakaful – Perlindungan Pintar Keluarga" />
   <meta property="og:description" content="Info ringkas, pelan jelas, dan tindakan pantas. Hubungi kami untuk semakan pelan peribadi anda." />
-  <meta property="og:type" content="website" />
   <meta name="theme-color" content="#0ea5e9" />
-  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html{scroll-behavior:smooth}
-    .container{max-width:1100px}
-    .img-cover{object-fit:cover;object-position:center}
+    html { scroll-behavior: smooth }
+    .container { max-width: 1100px }
   </style>
 </head>
 <body class="antialiased text-slate-800">
+
   <!-- Header -->
   <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-100">
     <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -25,8 +23,10 @@
         <span class="inline-block w-8 h-8 rounded-xl bg-sky-500"></span>
         <span>MyTakaful</span>
       </a>
-      <button id="menuBtn" class="md:hidden p-2 rounded-lg border border-slate-200" aria-label="Toggle menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <button id="menuBtn" class="md:hidden p-2 rounded-lg border border-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
       </button>
       <ul id="menu" class="hidden md:flex items-center gap-6 text-sm">
         <li><a class="hover:text-sky-600" href="#manfaat">Manfaat</a></li>
@@ -50,9 +50,7 @@
   <!-- Hero -->
   <section class="relative">
     <div class="absolute inset-0 -z-10">
-      <!-- Gambar hero -->
-      <img src="https://ibb.co/cKFmKKrt" alt="MyTakaful – Hero" class="w-full h-full img-cover" />
-      <div class="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/10"></div>
+      <div class="w-full h-full bg-gradient-to-b from-sky-200 to-white"></div>
     </div>
     <div class="container mx-auto px-4 py-20 md:py-28">
       <div class="max-w-2xl">
@@ -75,20 +73,15 @@
   <!-- Manfaat -->
   <section id="manfaat" class="py-16 md:py-20">
     <div class="container mx-auto px-4">
-      <div class="grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-semibold">Kenapa pilih MyTakaful?</h2>
-          <p class="mt-3 text-slate-600">Fokus kami ialah memastikan anda faham pelan yang diambil, bukan sekadar daftar. Semua penerangan dibuat dalam bahasa mudah dengan angka yang telus.</p>
-          <ul class="mt-6 space-y-3 text-slate-700">
-            <li class="flex gap-3"><span class="text-sky-600">▸</span> Semakan pelan ikut bajet dan keperluan</li>
-            <li class="flex gap-3"><span class="text-sky-600">▸</span> Panduan tuntutan langkah-demi-langkah</li>
-            <li class="flex gap-3"><span class="text-sky-600">▸</span> Pilihan manfaat fleksibel (medical, hibah, kritikal, kemalangan)</li>
-            <li class="flex gap-3"><span class="text-sky-600">▸</span> Sokongan WhatsApp responsif</li>
-          </ul>
-        </div>
-        <div class="rounded-2xl overflow-hidden shadow">
-          <img src="https://ibb.co/d0W0kzzb" alt="MyTakaful – Info" class="w-full h-80 md:h-[26rem] img-cover" />
-        </div>
+      <div class="max-w-2xl">
+        <h2 class="text-2xl md:text-3xl font-semibold">Kenapa pilih MyTakaful?</h2>
+        <p class="mt-3 text-slate-600">Fokus kami ialah memastikan anda faham pelan yang diambil, bukan sekadar daftar. Semua penerangan dibuat dalam bahasa mudah dengan angka yang telus.</p>
+        <ul class="mt-6 space-y-3 text-slate-700">
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Semakan pelan ikut bajet dan keperluan</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Panduan tuntutan langkah-demi-langkah</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Pilihan manfaat fleksibel (medical, hibah, kritikal, kemalangan)</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Sokongan WhatsApp responsif</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -101,37 +94,31 @@
         <p class="mt-2 text-slate-600">Contoh struktur pelan. Semua angka boleh diubah ikut umur, pekerjaan, dan bajet.</p>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
-        <!-- Plan 150 -->
         <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
-          <div class="text-xs uppercase tracking-wider text-slate-500">Plan</div>
           <h3 class="text-xl font-semibold">Plan 150</h3>
           <ul class="mt-4 text-sm text-slate-700 space-y-2">
             <li>Had Tahunan: RM150,000</li>
-            <li>Bilik &amp; Makan: RM150/malam</li>
+            <li>Bilik: RM150/malam</li>
             <li>Lifetime Limit: Unlimited</li>
           </ul>
           <div class="mt-6 text-3xl font-bold">RM***<span class="text-base font-normal text-slate-500">/bulan</span></div>
           <a href="#hubungi" class="mt-6 inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Minta Quotation</a>
         </div>
-        <!-- Plan 200 -->
         <div class="bg-white rounded-2xl shadow p-6 border-2 border-sky-600 flex flex-col">
-          <div class="text-xs uppercase tracking-wider text-slate-500">Plan</div>
           <h3 class="text-xl font-semibold">Plan 200</h3>
           <ul class="mt-4 text-sm text-slate-700 space-y-2">
             <li>Had Tahunan: RM200,000</li>
-            <li>Bilik &amp; Makan: RM200/malam</li>
+            <li>Bilik: RM200/malam</li>
             <li>Lifetime Limit: Unlimited</li>
           </ul>
           <div class="mt-6 text-3xl font-bold">RM***<span class="text-base font-normal text-slate-500">/bulan</span></div>
           <a href="#hubungi" class="mt-6 inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Minta Quotation</a>
         </div>
-        <!-- Plan 250 -->
         <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
-          <div class="text-xs uppercase tracking-wider text-slate-500">Plan</div>
           <h3 class="text-xl font-semibold">Plan 250</h3>
           <ul class="mt-4 text-sm text-slate-700 space-y-2">
             <li>Had Tahunan: RM250,000</li>
-            <li>Bilik &amp; Makan: RM250/malam</li>
+            <li>Bilik: RM250/malam</li>
             <li>Lifetime Limit: Unlimited</li>
           </ul>
           <div class="mt-6 text-3xl font-bold">RM***<span class="text-base font-normal text-slate-500">/bulan</span></div>
@@ -156,7 +143,7 @@
         </details>
         <details class="group bg-white border border-slate-200 rounded-xl p-5">
           <summary class="cursor-pointer font-medium">Adakah boleh ubah pelan kemudian?</summary>
-          <div class="mt-3 text-slate-600">Boleh, selagi mematuhi terma/garis panduan syarikat. Kami akan cadangkan pilihan terbaik bila perlu.</div>
+          <div class="mt-3 text-slate-600">Boleh, selagi mematuhi terma syarikat.</div>
         </details>
         <details class="group bg-white border border-slate-200 rounded-xl p-5">
           <summary class="cursor-pointer font-medium">Proses tuntutan macam mana?</summary>
@@ -164,7 +151,7 @@
         </details>
         <details class="group bg-white border border-slate-200 rounded-xl p-5">
           <summary class="cursor-pointer font-medium">Panel hospital ada di mana?</summary>
-          <div class="mt-3 text-slate-600">Senarai panel akan dikongsi semasa semakan pelan. Boleh semak mengikut lokasi anda.</div>
+          <div class="mt-3 text-slate-600">Senarai panel akan dikongsi semasa semakan pelan.</div>
         </details>
       </div>
     </div>
@@ -184,19 +171,18 @@
           <p class="mt-4 text-xs text-white/70">Waktu respons: 8.00 pagi – 12.00 malam. Kecemasan: <a class="underline" href="tel:+601125517767">011-2551 7767</a></p>
         </div>
 
-        <!-- Form WhatsApp -->
         <form class="bg-white text-slate-800 rounded-2xl p-6 shadow grid gap-4" onsubmit="openWA(event)">
           <div>
             <label class="text-sm" for="nama">Nama</label>
-            <input id="nama" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="text" placeholder="Contoh: Nama_Anda" required />
+            <input id="nama" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="text" required />
           </div>
           <div>
             <label class="text-sm" for="umur">Umur</label>
-            <input id="umur" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="number" min="1" max="100" placeholder="Contoh: 30" required />
+            <input id="umur" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="number" min="1" max="100" required />
           </div>
           <div>
             <label class="text-sm" for="pekerjaan">Pekerjaan</label>
-            <input id="pekerjaan" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="text" placeholder="Contoh: Jurutera / Peniaga" />
+            <input id="pekerjaan" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="text" />
           </div>
           <div>
             <label class="text-sm" for="keutamaan">Keutamaan</label>
@@ -210,7 +196,7 @@
           </div>
           <div>
             <label class="text-sm" for="bajet">Bajet (RM/bulan)</label>
-            <input id="bajet" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="number" min="10" step="10" placeholder="Contoh: 150" />
+            <input id="bajet" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 focus:border-sky-500 focus:ring-sky-500" type="number" min="10" step="10" />
           </div>
           <button class="mt-2 px-5 py-3 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Hantar di WhatsApp</button>
           <p class="text-xs text-slate-500">Dengan menghantar, anda bersetuju untuk dihubungi melalui WhatsApp bagi tujuan semakan pelan.</p>
@@ -219,7 +205,6 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="py-8 border-t border-slate-100">
     <div class="container mx-auto px-4 text-sm text-slate-500 flex flex-col md:flex-row items-center justify-between gap-3">
       <p>© <span id="y"></span> MyTakaful. Semua hak cipta terpelihara.</p>
@@ -230,12 +215,9 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script>
-    // Tahun footer
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Toggle menu mobile
     const menuBtn = document.getElementById('menuBtn');
     const menuMobile = document.getElementById('menuMobile');
     if (menuBtn && menuMobile) {
@@ -247,36 +229,9 @@
       }));
     }
 
-    // Hantar ke WhatsApp
     function openWA(e) {
       e.preventDefault();
       const nama = document.getElementById('nama')?.value?.trim() || '';
       const umur = document.getElementById('umur')?.value?.trim() || '';
       const pekerjaan = document.getElementById('pekerjaan')?.value?.trim() || '-';
-      const keutamaan = document.getElementById('keutamaan')?.value || '-';
-      const bajet = document.getElementById('bajet')?.value?.trim() || '-';
-
-      if (!nama || !umur) {
-        alert('Sila isi Nama dan Umur.');
-        return false;
-      }
-
-      const msg =
-`Assalamualaikum/Hi, saya berminat semak pelan.
-
-Nama: ${nama}
-Umur: ${umur}
-Pekerjaan: ${pekerjaan}
-Keutamaan: ${keutamaan}
-Bajet (RM/bulan): ${bajet}
-
-Boleh cadangkan pilihan yang sesuai?`;
-
-      const phone = '601125517767'; // nombor WhatsApp
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank'); // buka tab baru (elak pop-up block)
-      return false;
-    }
-  </script>
-</body>
-</html>
+      const
