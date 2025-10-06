@@ -216,8 +216,10 @@
   </footer>
 
   <script>
+    // Set tahun automatik
     document.getElementById('y').textContent = new Date().getFullYear();
 
+    // Mobile menu
     const menuBtn = document.getElementById('menuBtn');
     const menuMobile = document.getElementById('menuMobile');
     if (menuBtn && menuMobile) {
@@ -229,9 +231,11 @@
       }));
     }
 
+    // Fungsi borang WhatsApp
     function openWA(e) {
       e.preventDefault();
-      const nama = document.getElementById('nama')?.value?.trim() || '';
-      const umur = document.getElementById('umur')?.value?.trim() || '';
-      const pekerjaan = document.getElementById('pekerjaan')?.value?.trim() || '-';
+
+      const phone = '601125517767'; // Nombor WhatsApp
+      const get = id => document.getElementById(id);
+
       const
