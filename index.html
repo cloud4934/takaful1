@@ -3,305 +3,434 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chill Bubble Pop</title>
+  <title>Prudential Takaful – Perlindungan Pintar Keluarga</title>
+  <meta name="description" content="Prudential Takaful  — Platform ringkas untuk penerangan pelan takaful, medical card, hibah, dan temujanji pantas melalui WhatsApp." />
+  <meta property="og:title" content="Prudential Takaful  – Perlindungan Pintar Keluarga" />
+  <meta property="og:description" content="Info ringkas, pelan jelas, dan tindakan pantas. Hubungi kami untuk semakan pelan peribadi anda." />
+  <meta name="theme-color" content="#0ea5e9" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html, body { height: 100%; }
-    canvas { touch-action: none; }
-    .soft-shadow { box-shadow: 0 20px 50px rgba(2,132,199,.15), 0 8px 20px rgba(15,23,42,.1); }
+    html { scroll-behavior: smooth }
+    .container { max-width: 1100px }
+
+    /* ================= Kad 3D berisi (extruded) ================= */
+    :root { --thk: 14px; } /* ketebalan kad boleh ubah */
+
+    .scene { perspective: 1400px; }
+    .card3d {
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(0) rotateY(0);
+      transition: transform 80ms linear, box-shadow .2s;
+      border-radius: 12px;
+      background: #fff;
+      overflow: visible;
+      box-shadow:
+        0 24px 40px -20px rgba(2,132,199,.35),
+        0 18px 36px -18px rgba(15,23,42,.30),
+        0 6px 14px rgba(0,0,0,.18);
+    }
+    .card3d.is-dragging { cursor: grabbing; }
+
+    .face { position:absolute; inset:0; backface-visibility:hidden; border-radius:12px; overflow:hidden; }
+    .face img { width:100%; height:100%; object-fit:fill; } /* tiada crop bila bekas ikut nisbah imej */
+    .front { transform: translateZ(calc(var(--thk)/2)); }
+    .back  { transform: rotateY(180deg) translateZ(calc(var(--thk)/2)); }
+
+    /* sisi blok (isi tengah kad) */
+    .side { position:absolute; background: linear-gradient(180deg,#e5e7eb,#cbd5e1 60%,#94a3b8); box-shadow: inset 0 0 6px rgba(0,0,0,.12); }
+    .side.left   { width:var(--thk); height:100%; left:0;  top:0; transform: rotateY(-90deg) translateZ(calc(50% - var(--thk)/2)); transform-origin:left center;  border-radius:8px; }
+    .side.right  { width:var(--thk); height:100%; right:0; top:0; transform: rotateY( 90deg) translateZ(calc(50% - var(--thk)/2)); transform-origin:right center; border-radius:8px; }
+    .side.top    { height:var(--thk); width:100%; left:0;  top:0; transform: rotateX( 90deg) translateZ(calc(50% - var(--thk)/2)); transform-origin:center top;    border-radius:8px; background: linear-gradient(90deg,#e5e7eb,#cbd5e1 60%,#94a3b8); }
+    .side.bottom { height:var(--thk); width:100%; left:0;  bottom:0; transform: rotateX(-90deg) translateZ(calc(50% - var(--thk)/2)); transform-origin:center bottom; border-radius:8px; background: linear-gradient(90deg,#e5e7eb,#cbd5e1 60%,#94a3b8); }
+
+    /* ================= Balloon (avatar) + Modal ================= */
+    .float-badge { position:fixed; right:18px; bottom:22px; z-index:70; display:flex; align-items:center; gap:.5rem; animation:bob 2.6s ease-in-out infinite; }
+    .speech { background:#0ea5e9; color:#fff; padding:.5rem .7rem; border-radius:9999px; font-size:.8rem; box-shadow:0 10px 20px rgba(14,165,233,.25); position:relative; }
+    .speech:after { content:""; position:absolute; right:-6px; bottom:10px; width:10px; height:10px; background:#0ea5e9; transform:rotate(45deg); }
+    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.35)); backdrop-filter: blur(8px); }
+
+    /* Zoom overlay */
+    #zoomOverlay { touch-action:auto; }
+    #zoomImg.fit  { max-width:92vw; max-height:92vh; object-fit:contain; }
+    #zoomImg.full { max-width:none; max-height:none; }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-sky-50 to-white text-slate-800 antialiased">
-  <main class="mx-auto max-w-3xl px-4 py-8">
-    <div class="rounded-2xl bg-white border border-slate-100 p-4 md:p-6 soft-shadow">
-      <header class="flex flex-wrap items-center gap-3 justify-between">
-        <h1 class="text-xl md:text-2xl font-semibold">🫧 Chill Bubble Pop</h1>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-slate-500">Mode:</span>
-          <select id="mode" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm">
-            <option value="zen">Zen (∞)</option>
-            <option value="burst">30s Burst</option>
-          </select>
-          <button id="startBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm hover:bg-sky-700">Start</button>
-          <button id="resetBtn" class="px-4 py-2 rounded-xl border border-slate-300 text-sm hover:bg-slate-50">Reset</button>
-        </div>
-      </header>
+<body class="antialiased text-slate-800">
 
-      <section class="mt-4 grid md:grid-cols-[1fr_auto] gap-4">
-        <div class="relative rounded-xl overflow-hidden border border-slate-200">
-          <canvas id="game" class="w-full h-[56vh] md:h-[60vh] block bg-gradient-to-b from-white to-sky-50"></canvas>
-          <div id="tapHint" class="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-slate-500">
-            Tap/click untuk pecahkan buih • Seret jari untuk combo
-          </div>
-        </div>
-        <aside class="grid gap-3 content-start">
-          <div class="rounded-xl border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">Skor</div>
-            <div id="score" class="text-3xl font-semibold">0</div>
-          </div>
-          <div class="rounded-xl border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">Masa</div>
-            <div id="timer" class="text-3xl font-semibold">∞</div>
-          </div>
-          <div class="rounded-xl border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">Combo</div>
-            <div id="combo" class="text-3xl font-semibold">x1</div>
-          </div>
-          <div class="text-xs text-slate-500">
-            Tip: Pecahkan beberapa buih cepat-cepat untuk tingkatkan combo.
-          </div>
-        </aside>
-      </section>
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-100">
+    <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-semibold tracking-wide">
+        <span class="inline-block w-8 h-8 rounded-xl bg-sky-500"></span>
+        <span>Prudential Takaful </span>
+      </a>
+      <button id="menuBtn" class="md:hidden p-2 rounded-lg border border-slate-200" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <ul id="menu" class="hidden md:flex items-center gap-6 text-sm">
+        <li><a class="hover:text-sky-600" href="#manfaat">Manfaat</a></li>
+        <li><a class="hover:text-sky-600" href="#pelan">Pelan</a></li>
+        <li><a class="hover:text-sky-600" href="#soalan">FAQ</a></li>
+        <li><a class="hover:text-sky-600" href="#hubungi">Hubungi</a></li>
+        <li><a class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700" href="#hubungi">Dapatkan Sebut Harga</a></li>
+      </ul>
+    </nav>
+    <div id="menuMobile" class="hidden md:hidden border-t border-slate-100">
+      <ul class="container mx-auto px-4 py-3 grid gap-3 text-sm">
+        <li><a class="block py-2" href="#manfaat">Manfaat</a></li>
+        <li><a class="block py-2" href="#pelan">Pelan</a></li>
+        <li><a class="block py-2" href="#soalan">FAQ</a></li>
+        <li><a class="block py-2" href="#hubungi">Hubungi</a></li>
+        <li><a class="inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white" href="#hubungi">Dapatkan Sebut Harga</a></li>
+      </ul>
     </div>
-  </main>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative">
+    <div class="absolute inset-0 -z-10">
+      <div class="w-full h-full bg-gradient-to-b from-sky-200 to-white"></div>
+    </div>
+    <div class="container mx-auto px-4 py-20 md:py-28">
+      <div class="max-w-2xl">
+        <h1 class="text-3xl md:text-5xl font-bold leading-tight text-slate-900">
+          Perlindungan perubatan & kewangan untuk keluarga — jelas, mudah, telus.
+        </h1>
+        <p class="mt-4 text-slate-700 md:text-lg">
+          Semak pelan terbaik ikut bajet dan keperluan. Kami bantu dari A sampai Z — dari penerangan, pendaftaran, hingga tuntutan.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="https://wa.me/601125517767" target="_blank" rel="noopener" class="px-5 py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">WhatsApp Sekarang</a>
+          <a href="#pelan" class="px-5 py-3 rounded-xl border border-slate-300 hover:border-slate-400">Lihat Pelan</a>
+        </div>
+        <ul class="mt-6 grid grid-cols-2 gap-2 text-sm text-slate-600">
+          <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Medical Card</li>
+          <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Hibah Keluarga</li>
+          <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Penyakit Kritikal</li>
+          <li class="flex items-center gap-2"><span class="text-emerald-600">✓</span> Kemalangan</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manfaat -->
+  <section id="manfaat" class="py-16 md:py-20">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl">
+        <h2 class="text-2xl md:text-3xl font-semibold">Kenapa pilih Prudential Takaful ?</h2>
+        <p class="mt-3 text-slate-600"> Fokus kami adalah untuk memastikan anda benar-benar memahami pelan yang dipilih, bukan sekadar mendaftar. Setiap penerangan disampaikan dengan bahasa yang mudah difahami dan angka yang telus.</p>
+        <ul class="mt-6 space-y-3 text-slate-700">
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Semakan pelan ikut bajet dan keperluan</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Panduan tuntutan langkah-demi-langkah</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Pilihan manfaat fleksibel (medical, hibah, kritikal, kemalangan)</li>
+          <li class="flex gap-3"><span class="text-sky-600">▸</span> Sokongan WhatsApp</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pelan -->
+  <section id="pelan" class="py-16 md:py-20 bg-slate-50">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl mb-10">
+        <h2 class="text-2xl md:text-3xl font-semibold">Pilihan Pelan</h2>
+        <p class="mt-2 text-slate-600">Contoh struktur pelan. Semua angka boleh diubah ikut umur, pekerjaan, dan bajet.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
+          <h3 class="text-xl font-semibold">Plan 150</h3>
+          <ul class="mt-4 text-sm text-slate-700 space-y-2">
+            <li>Had Tahunan: RM150,000</li>
+            <li>Bilik: RM150/malam</li>
+            <li>Lifetime Limit: Unlimited</li>
+          </ul>
+          <button onclick="prefillPlan('Plan 150')" class="mt-6 inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Minta Quotation</button>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6 border-2 border-sky-600 flex flex-col">
+          <h3 class="text-xl font-semibold">Plan 200</h3>
+          <ul class="mt-4 text-sm text-slate-700 space-y-2">
+            <li>Had Tahunan: RM200,000</li>
+            <li>Bilik: RM200/malam</li>
+            <li>Lifetime Limit: Unlimited</li>
+          </ul>
+          <button onclick="prefillPlan('Plan 200')" class="mt-6 inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Minta Quotation</button>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
+          <h3 class="text-xl font-semibold">Plan 250</h3>
+          <ul class="mt-4 text-sm text-slate-700 space-y-2">
+            <li>Had Tahunan: RM250,000</li>
+            <li>Bilik: RM250/malam</li>
+            <li>Lifetime Limit: Unlimited</li>
+          </ul>
+          <button onclick="prefillPlan('Plan 250')" class="mt-6 inline-flex justify-center px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Minta Quotation</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="soalan" class="py-16 md:py-20">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl mb-8">
+        <h2 class="text-2xl md:text-3xl font-semibold">Soalan Lazim</h2>
+        <p class="mt-2 text-slate-600">Ringkas dan terus kepada point.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <details class="group bg-white border border-slate-200 rounded-xl p-5">
+          <summary class="cursor-pointer font-medium">Berapa anggaran sumbangan bulanan?</summary>
+          <div class="mt-3 text-slate-600">Bergantung pada umur, pekerjaan, dan manfaat dipilih. Tekan “Minta Quotation” untuk semakan percuma.</div>
+        </details>
+        <details class="group bg-white border border-slate-200 rounded-xl p-5">
+          <summary class="cursor-pointer font-medium">Adakah boleh ubah pelan kemudian?</summary>
+          <div class="mt-3 text-slate-600">Boleh, selagi mematuhi terma syarikat.</div>
+        </details>
+        <details class="group bg-white border border-slate-200 rounded-xl p-5">
+          <summary class="cursor-pointer font-medium">Proses tuntutan macam mana?</summary>
+          <div class="mt-3 text-slate-600">Kami sediakan senarai semak & pandu langkah demi langkah. Hubungi kami bila berlaku tuntutan.</div>
+        </details>
+        <details class="group bg-white border border-slate-200 rounded-xl p-5">
+          <summary class="cursor-pointer font-medium">Panel hospital/klinik ada di mana?</summary>
+          <div class="mt-3 text-slate-600">Senarai panel akan dikongsi semasa semakan pelan.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hubungi -->
+  <section id="hubungi" class="py-16 md:py-20 bg-slate-900 text-white">
+    <div class="container mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-semibold">Tanya kami, dapatkan cadangan tepat</h2>
+          <p class="mt-2 text-slate-300">Hantar umur, pekerjaan, bajet anggaran & keutamaan (medical/hibah/kritikal/kemalangan). Kami balas dengan pilihan yang jelas.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="https://wa.me/601125517767" target="_blank" rel="noopener" class="px-5 py-3 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600">WhatsApp</a>
+            <a href="https://linktr.ee/hafizulca" target="_blank" rel="noopener" class="px-5 py-3 rounded-xl border border-white/30 text-white hover:bg-white/10">Linktree</a>
+          </div>
+          <p class="mt-4 text-xs text-white/70">Waktu respons: 8.00 pagi – 12.00 malam. Kecemasan: <a class="underline" href="tel:+601125517767">011-2551 7767</a></p>
+        </div>
+
+        <form class="bg-white text-slate-800 rounded-2xl p-6 shadow grid gap-4" onsubmit="openWA(event)">
+          <div>
+            <label class="text-sm" for="nama">Nama</label>
+            <input id="nama" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="text" required />
+          </div>
+          <div>
+            <label class="text-sm" for="umur">Umur</label>
+            <input id="umur" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="number" required />
+          </div>
+          <div>
+            <label class="text-sm" for="pekerjaan">Pekerjaan</label>
+            <input id="pekerjaan" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="text" />
+          </div>
+          <div>
+            <label class="text-sm" for="keutamaan">Keutamaan</label>
+            <select id="keutamaan" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+              <option>Medical Card</option>
+              <option>Hibah</option>
+              <option>Penyakit Kritikal</option>
+              <option>Kemalangan</option>
+              <option>Gabungan</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm" for="bajet">Bajet (RM/bulan)</label>
+            <input id="bajet" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="number" placeholder="contoh: 200" />
+          </div>
+          <button class="mt-2 px-5 py-3 rounded-xl bg-sky-600 text-white hover:bg-sky-700">Hantar di WhatsApp</button>
+          <p class="text-xs text-slate-500">Dengan menghantar, anda bersetuju untuk dihubungi melalui WhatsApp bagi tujuan semakan pelan.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="py-8 border-t border-slate-100 text-center text-slate-500">
+    © <span id="y"></span> Prudential Takaful . Semua hak cipta terpelihara.
+  </footer>
+
+  <!-- ========= Balloon avatar (bottom-right) ========= -->
+  <div id="bc-badge" class="float-badge">
+    <div class="speech hidden sm:block">Tanya saya 🚀</div>
+    <button class="relative w-14 h-14 rounded-full ring-4 ring-white shadow-lg overflow-hidden focus:outline-none focus:ring-4 focus:ring-sky-300" aria-label="Buka kad bisnes">
+      <img src="https://i.ibb.co/0pCRzt0b/8284c3c0-29c5-11ed-b68f-96d3f09e23e7.jpg" alt="Avatar" class="w-full h-full object-cover">
+      <span class="absolute inset-0 rounded-full animate-ping bg-sky-500/25"></span>
+    </button>
+  </div>
+
+  <!-- Overlay + Modal Kad 3D -->
+  <div id="bc-overlay" class="hidden fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"></div>
+  <div id="bc-modal" class="hidden fixed inset-0 z-[90] p-4 grid place-items-center">
+    <div class="glass rounded-2xl border border-white/30 shadow-2xl p-5 w-full max-w-xl relative">
+      <button id="bc-close" class="absolute top-3 right-3 p-2 rounded-lg hover:bg-white/60" aria-label="Tutup">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div id="scene" class="scene mx-auto">
+        <div id="card3d" class="card3d select-none">
+          <!-- FRONT -->
+          <div class="face front" id="frontFace">
+            <img id="imgFront" src="https://i.ibb.co/kV8dVVS0/Scanned-Document-06-10-2025-at-22-20-01.jpg" alt="">
+          </div>
+          <!-- BACK -->
+          <div class="face back" id="backFace">
+            <img id="imgBack"  src="https://i.ibb.co/MD2DP338/Scanned-Document-06-10-2025-at-22-20-45.jpg" alt="">
+          </div>
+          <!-- Sisi (isi tengah) -->
+          <div class="side left"></div>
+          <div class="side right"></div>
+          <div class="side top"></div>
+          <div class="side bottom"></div>
+        </div>
+      </div>
+
+      <div class="mt-3 flex justify-between text-xs text-slate-600">
+        <button id="flip"  class="px-3 py-1 rounded-lg border border-slate-300 bg-white/80 hover:bg-white">Flip</button>
+        <button id="reset" class="px-3 py-1 rounded-lg border border-slate-300 bg-white/80 hover:bg-white">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zoom overlay -->
+  <div id="zoomOverlay" class="hidden fixed inset-0 z-[100] bg-black/80">
+    <div id="zoomScroll" class="w-full h-full overflow-auto flex items-center justify-center p-4">
+      <img id="zoomImg" class="fit select-none" src="" alt="">
+    </div>
+    <div class="absolute top-3 right-3 flex gap-2">
+      <button id="zoomToggle" class="px-3 py-1 rounded-lg bg-white/90 text-slate-800 text-sm">100%</button>
+      <button id="zoomClose"  class="px-3 py-1 rounded-lg bg-white/90 text-slate-800 text-sm">Close</button>
+    </div>
+  </div>
 
   <script>
-    // ===== Setup canvas =====
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d', { alpha: true });
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    function resize() {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
-    }
-    resize();
-    window.addEventListener('resize', resize);
+    // Tahun footer
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-    // ===== Game state =====
-    const modeSel = document.getElementById('mode');
-    const startBtn = document.getElementById('startBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const scoreEl = document.getElementById('score');
-    const timerEl = document.getElementById('timer');
-    const comboEl = document.getElementById('combo');
-    const tapHint = document.getElementById('tapHint');
-
-    let bubbles = [];
-    let particles = [];
-    let running = false;
-    let lastSpawn = 0;
-    let score = 0;
-    let combo = 1;
-    let comboTimer = 0;
-    let timeLeft = Infinity; // seconds
-    let lastTime = performance.now();
-
-    // ===== Helpers =====
-    const rand = (min, max) => Math.random() * (max - min) + min;
-    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
-    function spawnBubble() {
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      const r = rand(14, 36); // radius in css px
-      const x = rand(r, w - r);
-      const y = h + r + rand(0, 40); // spawn below
-      const speed = rand(20, 60); // px per sec upward
-      const hue = rand(180, 220); // calm blue range
-      bubbles.push({
-        x, y, r, vy: -speed, vx: rand(-10, 10),
-        wobbleA: rand(0.8, 1.4), wobbleT: rand(0, Math.PI * 2),
-        hue, alpha: 0.85,
-      });
+    // Menu mobile
+    const menuBtn = document.getElementById('menuBtn');
+    const menuMobile = document.getElementById('menuMobile');
+    if (menuBtn && menuMobile) {
+      menuBtn.addEventListener('click', () => menuMobile.classList.toggle('hidden'));
+      menuMobile.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menuMobile.classList.add('hidden')));
     }
 
-    function popBubble(i, strong=false) {
-      const b = bubbles[i];
-      if (!b) return;
-      // particles
-      const n = strong ? 32 : 18;
-      for (let k = 0; k < n; k++) {
-        const a = rand(0, Math.PI * 2);
-        const sp = strong ? rand(90, 180) : rand(70, 130);
-        particles.push({
-          x: b.x, y: b.y,
-          vx: Math.cos(a) * sp,
-          vy: Math.sin(a) * sp,
-          life: rand(0.35, 0.75),
-          size: rand(1.5, 3.5),
-          hue: b.hue + rand(-10, 10),
-          alpha: 1
-        });
-      }
-      // score + combo
-      score += 1 * combo;
-      scoreEl.textContent = score;
-      combo = clamp(combo + 0.1, 1, 5);
-      comboEl.textContent = 'x' + combo.toFixed(1);
-      comboTimer = 1.2; // seconds to keep combo
-      // haptics
-      if (navigator.vibrate) navigator.vibrate(6);
-      // remove bubble
-      bubbles.splice(i, 1);
+    // Prefill plan → form
+    function prefillPlan(plan) {
+      document.getElementById('keutamaan').value = 'Medical Card';
+      document.querySelector('form').dataset.selectedPlan = plan;
+      document.getElementById('hubungi').scrollIntoView({behavior: 'smooth'});
     }
 
-    // ===== Input (click/touch/drag) =====
-    function pointerPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      if (e.touches && e.touches[0]) {
-        return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-      }
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    }
-    function handlePop(e) {
-      if (!running) return;
-      const p = pointerPos(e);
-      // allow "drag to pop": check all bubbles within finger path radius
-      const radius = 28;
-      let popped = false;
-      for (let i = bubbles.length - 1; i >= 0; i--) {
-        const b = bubbles[i];
-        const dx = b.x - p.x, dy = b.y - p.y;
-        if (dx*dx + dy*dy <= (b.r + radius) * (b.r + radius)) {
-          popBubble(i);
-          popped = true;
-        }
-      }
-      if (!popped) {
-        // gentle ripple if missed
-        particles.push({ x: p.x, y: p.y, vx: 0, vy: 0, life: 0.25, size: 8, hue: 210, alpha: .25 });
-        combo = 1; comboEl.textContent = 'x1';
-      }
+    // Hantar WhatsApp
+    function openWA(e) {
       e.preventDefault();
-    }
-    canvas.addEventListener('mousedown', handlePop);
-    canvas.addEventListener('mousemove', (e) => { if (e.buttons === 1) handlePop(e); });
-    canvas.addEventListener('touchstart', handlePop, { passive: false });
-    canvas.addEventListener('touchmove', handlePop, { passive: false });
+      const phone = '601125517767';
+      const form = document.querySelector('form');
+      const nama = document.getElementById('nama').value.trim();
+      const umur = document.getElementById('umur').value.trim();
+      const pekerjaan = (document.getElementById('pekerjaan').value || '-').trim();
+      const keutamaan = document.getElementById('keutamaan').value.trim();
+      const bajet = (document.getElementById('bajet').value || '-').trim();
+      const plan = form.dataset.selectedPlan ? `\nPelan Pilihan: ${form.dataset.selectedPlan}` : '';
+      if (!nama || !umur) { alert('Sila isi Nama dan Umur.'); return; }
+      const msg = `Assalamualaikum, saya ${nama}.
+Umur: ${umur}
+Pekerjaan: ${pekerjaan}
+Keutamaan: ${keutamaan}${plan}
+Bajet: RM${bajet}/bulan
 
-    // ===== Loop =====
-    function update(dt) {
-      // spawn rate depends on mode
-      const spawnEvery = modeSel.value === 'zen' ? 0.25 : 0.18; // seconds
-      lastSpawn += dt;
-      while (lastSpawn > spawnEvery) {
-        spawnBubble();
-        lastSpawn -= spawnEvery;
-      }
-      // move bubbles
-      for (let i = bubbles.length - 1; i >= 0; i--) {
-        const b = bubbles[i];
-        b.wobbleT += dt * b.wobbleA;
-        b.x += Math.cos(b.wobbleT) * 12 * dt + b.vx * dt * 0.1;
-        b.y += b.vy * dt;
-        if (b.y < -b.r - 20) bubbles.splice(i, 1);
-      }
-      // particles
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.life -= dt;
-        p.x += p.vx * dt * 0.5;
-        p.y += p.vy * dt * 0.5;
-        p.vy += 40 * dt * 0.5; // soft gravity
-        p.alpha = Math.max(0, p.life * 1.5);
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-      // combo decay
-      if (combo > 1) {
-        comboTimer -= dt;
-        if (comboTimer <= 0) { combo = 1; comboEl.textContent = 'x1'; }
-      }
-      // timer
-      if (modeSel.value === 'burst' && running) {
-        timeLeft -= dt;
-        timerEl.textContent = Math.max(0, Math.ceil(timeLeft));
-        if (timeLeft <= 0) {
-          running = false;
-          timerEl.textContent = '0';
-          // small finale burst
-          for (let i = 0; i < 60; i++) {
-            particles.push({
-              x: rand(20, canvas.clientWidth - 20),
-              y: rand(20, canvas.clientHeight - 20),
-              vx: rand(-140, 140),
-              vy: rand(-140, 140),
-              life: rand(0.4, 0.9),
-              size: rand(1.5, 3),
-              hue: rand(180, 220),
-              alpha: 1
-            });
-          }
-        }
-      } else {
-        timerEl.textContent = '∞';
-      }
+Mohon semak pelan yang sesuai. Terima kasih.`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank', 'noopener') || (window.location.href = url);
     }
 
-    function draw() {
-      // clear with super-soft gradient wash
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      ctx.clearRect(0, 0, w, h);
+    /* ===== Balloon open/close ===== */
+    const badge   = document.getElementById('bc-badge');
+    const overlay = document.getElementById('bc-overlay');
+    const modal   = document.getElementById('bc-modal');
+    const closeX  = document.getElementById('bc-close');
 
-      // subtle background bubbles
-      for (let i = 0; i < 6; i++) {
-        const rx = ((i * 97) % w);
-        const ry = ((i * 53) % h);
-        const rr = 60 + (i * 10);
-        const g = ctx.createRadialGradient(rx, ry, 0, rx, ry, rr);
-        g.addColorStop(0, 'rgba(14,165,233,0.06)');
-        g.addColorStop(1, 'rgba(14,165,233,0.0)');
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, Math.PI * 2); ctx.fill();
-      }
+    function openModal(){ overlay.classList.remove('hidden'); modal.classList.remove('hidden'); autoSpin(true); }
+    function closeModal(){ modal.classList.add('hidden'); overlay.classList.add('hidden'); autoSpin(false); }
 
-      // bubbles
-      for (const b of bubbles) {
-        const g = ctx.createRadialGradient(b.x - b.r*0.4, b.y - b.r*0.4, b.r*0.1, b.x, b.y, b.r);
-        g.addColorStop(0, `hsla(${b.hue}, 80%, 70%, ${b.alpha})`);
-        g.addColorStop(1, `hsla(${b.hue}, 90%, 55%, ${b.alpha * 0.8})`);
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+    badge.addEventListener('click', openModal);
+    overlay.addEventListener('click', closeModal);
+    closeX.addEventListener('click', closeModal);
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
-        // gloss
-        ctx.strokeStyle = `hsla(${b.hue}, 100%, 98%, ${0.8})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.arc(b.x - b.r*0.3, b.y - b.r*0.3, b.r*0.25, 0, Math.PI * 2); ctx.stroke();
-      }
+    /* ===== Kad 3D (extruded) ===== */
+    const scene   = document.getElementById('scene');
+    const card    = document.getElementById('card3d');
+    const imgF    = document.getElementById('imgFront');
+    const imgB    = document.getElementById('imgBack');
+    const frontEl = document.getElementById('frontFace');
+    const backEl  = document.getElementById('backFace');
+    const btnR    = document.getElementById('reset');
+    const btnFlip = document.getElementById('flip');
 
-      // particles
-      for (const p of particles) {
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${p.alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-      }
+    let rotX=0, rotY=0, dragging=false, lastX=0, lastY=0, spinTimer=null, flipped=false;
+
+    function render(){
+      const viewY = flipped ? rotY + 180 : rotY;
+      card.style.transform = `rotateX(${rotX}deg) rotateY(${viewY}deg)`;
+    }
+    function autoSpin(run){ if(spinTimer){clearInterval(spinTimer);spinTimer=null;} if(run){ spinTimer=setInterval(()=>{rotY+=0.6;render();},30); } }
+    function pos(e){ return e.touches? {x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY}; }
+    function down(e){ dragging=true; card.classList.add('is-dragging'); const p=pos(e); lastX=p.x; lastY=p.y; autoSpin(false); }
+    function move(e){ if(!dragging) return; const p=pos(e); const dx=p.x-lastX, dy=p.y-lastY;
+      rotY += dx*0.4; rotX -= dy*0.4; rotX = Math.max(-60, Math.min(60, rotX)); lastX=p.x; lastY=p.y; render(); }
+    function up(){ dragging=false; card.classList.remove('is-dragging'); }
+    card.addEventListener('mousedown', down); card.addEventListener('touchstart', down,{passive:true});
+    window.addEventListener('mousemove', move); window.addEventListener('touchmove', move,{passive:true});
+    window.addEventListener('mouseup', up);   window.addEventListener('touchend', up);
+
+    btnFlip.addEventListener('click', ()=>{ flipped=!flipped; render(); });
+    btnR.addEventListener('click', ()=>{ rotX=0; rotY=0; flipped=false; render(); autoSpin(true); });
+
+    // Saiz ikut nisbah imej (tiada crop/ruang putih)
+    function fitToImage(){
+      const nw = imgF.naturalWidth, nh = imgF.naturalHeight; if(!nw||!nh) return;
+      const ratio = nh / nw;
+      const maxW = Math.min(360, window.innerWidth - 48);
+      const maxH = Math.min(560, window.innerHeight - 200);
+      let w = maxW, h = w * ratio; if (h > maxH){ h = maxH; w = h / ratio; }
+      scene.style.width = w + 'px'; scene.style.height = h + 'px';
+      card.style.width  = w + 'px'; card.style.height  = h + 'px';
+    }
+    function init(){ fitToImage(); render(); }
+    if (imgF.complete) init(); else imgF.addEventListener('load', init);
+    window.addEventListener('resize', fitToImage);
+
+    /* ===== Zoom overlay ===== */
+    const zoomOverlay = document.getElementById('zoomOverlay');
+    const zoomImg     = document.getElementById('zoomImg');
+    const zoomScroll  = document.getElementById('zoomScroll');
+    const zoomClose   = document.getElementById('zoomClose');
+    const zoomToggle  = document.getElementById('zoomToggle');
+    let zoomMode='fit';
+
+    function openZoom(src){
+      zoomImg.src = src; zoomMode='fit';
+      zoomImg.classList.remove('full'); zoomImg.classList.add('fit');
+      zoomOverlay.classList.remove('hidden'); autoSpin(false);
+      zoomScroll.scrollTop=0; zoomScroll.scrollLeft=0;
+    }
+    function closeZoom(){ zoomOverlay.classList.add('hidden'); autoSpin(true); }
+    function toggleZoom(){
+      if(zoomMode==='fit'){ zoomMode='full'; zoomImg.classList.remove('fit'); zoomImg.classList.add('full'); zoomToggle.textContent='Fit'; }
+      else { zoomMode='fit'; zoomImg.classList.remove('full'); zoomImg.classList.add('fit'); zoomToggle.textContent='100%'; zoomScroll.scrollTop=0; zoomScroll.scrollLeft=0; }
     }
 
-    function loop(t) {
-      const now = t || performance.now();
-      const dt = Math.min(0.05, (now - lastTime) / 1000); // clamp dt
-      lastTime = now;
-
-      if (running) update(dt);
-      draw();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-
-    // ===== Controls =====
-    function startGame() {
-      running = true;
-      tapHint.style.opacity = 0.0;
-      bubbles.length = 0;
-      particles.length = 0;
-      score = 0; combo = 1; comboTimer = 0;
-      scoreEl.textContent = '0'; comboEl.textContent = 'x1';
-      if (modeSel.value === 'burst') {
-        timeLeft = 30; timerEl.textContent = '30';
-      } else {
-        timeLeft = Infinity; timerEl.textContent = '∞';
-      }
-    }
-    function resetGame() {
-      running = false;
-      tapHint.style.opacity = 1.0;
-      bubbles.length = 0;
-      particles.length = 0;
-      score = 0; combo = 1; comboTimer = 0; timeLeft = Infinity;
-      scoreEl.textContent = '0'; timerEl.textContent = '∞'; comboEl.textContent = 'x1';
-    }
-
-    startBtn.addEventListener('click', startGame);
-    resetBtn.addEventListener('click', resetGame);
+    frontEl.addEventListener('click', ()=>{ if(!dragging) openZoom(imgF.src); });
+    backEl .addEventListener('click', ()=>{ if(!dragging) openZoom(imgB.src); });
+    zoomClose.addEventListener('click', closeZoom);
+    zoomToggle.addEventListener('click', toggleZoom);
+    document.addEventListener('keydown', (e)=>{ if(!zoomOverlay.classList.contains('hidden') && e.key==='Escape') closeZoom(); });
+    zoomOverlay.addEventListener('click', (e)=>{ if(e.target===zoomOverlay) closeZoom(); });
   </script>
 </body>
 </html>
